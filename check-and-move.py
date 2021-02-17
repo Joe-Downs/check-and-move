@@ -1,5 +1,11 @@
+from datetime import datetime
 import shutil
 import os
+
+# Get the current hour and minute beforehand and save it for the log file's
+# name so that the same file is written to, even if the program runs for
+# longer than a minute
+logFilename = f"{datetime.now().strftime('%y%m%d-%H%M')}.log"
 
 # Splits a list of files and subdirectories into a list of files
 # and a list of subdirectories
@@ -32,15 +38,24 @@ def verifyDestPath(mainRoot, src, dest):
     try:
         os.makedirs(fullDirDest)
     except FileExistsError:
-        print(f"{fullDirDest} already exists")
+        # Directory alread exists, do nothing
 
 # Copy file to the destination folder, preserving the
 # original hierarchy from the main 'root'
 def copyFile(mainRoot, src, dest):
     relativeSrc = getRelativePath(mainRoot, src)
     fullDest = os.path.join(dest, relativeSrc)
-    shutil.copy2(src, fullDest, follow_symlinks = True)
-    
+    try:
+        shutil.copy2(src, fullDest, follow_symlinks = True)
+    except OSError as error:
+        # Open the log file and append a new line with information about
+        # the error (time, errorno, desc, filename)
+        logFile = open(logFilename, "a")
+        logFile.write(f"[{datetime.now().strftime('%H:%M:%S')}] ")
+        logFile.write(f"(Errno: {error.errno} - {error.strerror}) {relativeSrc}\n")
+        logFile.close()
+        print(f"[Errno {error.errno} - {error.strerror}] {relativeSrc}")
+        
 fileList, dirList = list(), list()
 mainRoot = input("What folder would you like to move? ")
 dirList.append(mainRoot)
