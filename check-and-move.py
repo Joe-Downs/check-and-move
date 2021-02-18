@@ -39,6 +39,7 @@ def verifyDestPath(mainRoot, src, dest):
         os.makedirs(fullDirDest)
     except FileExistsError:
         # Directory alread exists, do nothing
+        return
 
 # Copy file to the destination folder, preserving the
 # original hierarchy from the main 'root'
